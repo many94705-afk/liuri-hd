@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>流日人类图</title>
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="流日人类图">
+<link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-180.png"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#f5eadf">
+<style>
+/* 手机优先的单列布局（与演示版、流日小窗一致）；电脑上居中显示同样的窄版面 */
+*{box-sizing:border-box}body{margin:0;background:#f5eadf;color:#332b26;font:15px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;-webkit-text-size-adjust:100%}
+.app{max-width:520px;margin:auto;padding:0 12px calc(84px + env(safe-area-inset-bottom))}
+[hidden]{display:none!important}
+/* 顶部：标题 + 流日日期（人体图、解读、月历三个标签共用） */
+.topbar{position:sticky;top:0;z-index:5;margin:0 -12px;padding:max(10px,env(safe-area-inset-top)) 12px 10px;background:#f5eadfee;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid #ead7c5}
+.titlerow{display:flex;align-items:baseline;gap:8px}.titlerow h1{margin:0;font-size:19px}.titlerow .muted{font-size:12px}
+.datebar{display:flex;align-items:center;gap:6px;margin-top:8px}
+.arrow{flex:none;width:40px;height:40px;border:0;border-radius:10px;background:#eadaca;color:#5f4634;font-size:20px;line-height:1;cursor:pointer}
+.pick{position:relative;flex:1;min-width:0;height:40px;border-radius:10px;background:#fffaf4;border:1px solid #ead7c5;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;cursor:pointer}
+.pick.time{flex:.5;font-weight:400}.pick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+.refresh{flex:none;width:40px;height:40px;padding:0;font-size:17px}
+/* 底部标签栏 */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:center;gap:4px;padding:6px 10px calc(6px + env(safe-area-inset-bottom));background:#fffaf4f2;border-top:1px solid #ead7c5;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.tabs button{flex:1;max-width:130px;border:0;border-radius:10px;background:none;color:#8d796a;font:600 13px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;padding:6px 0 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.tabs button i{font-style:normal;font-size:19px;line-height:1.2}.tabs button.on{color:#ca7b2f;background:#fbe9d5}
+.view{padding-top:2px}
+/* 解读标签顶部：所选时刻接通的通道（与流日小窗同样的详细信息） */
+.ncard .nhead{display:flex;align-items:center;gap:8px;margin-bottom:4px}.ncard .nhead h2{margin:0;flex:1}
+.nowbtn{flex:none;min-height:32px;padding:4px 12px;border:0;border-radius:16px;background:#eadaca;color:#5f4634;font-size:13px;cursor:pointer}
+.ch{padding:11px 0;border-top:1px solid #eadaca}.ch:first-child{border-top:0;padding-top:4px}
+.ch .row{display:flex;align-items:baseline;gap:6px}.ch .no{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}.ch .name{font-size:15px}.ch .left{margin-left:auto;color:#cf3d75;font-size:12px;white-space:nowrap}
+.ch .desc{margin-top:3px;color:#6e5849;font-size:13px;line-height:1.5}
+.src{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:#6e5849}.gl{background:#e2457f;color:#fff;font-weight:600;border-radius:9px;padding:1px 7px;font-size:12px;font-variant-numeric:tabular-nums}.src .span{margin-left:auto;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:3px;background:#eadaca;border-radius:2px;margin-top:7px;overflow:hidden}.bar i{display:block;height:100%;background:#cf3d75}
+.nnext{margin-top:4px;padding-top:10px;border-top:1px solid #eadaca;color:#6e5849;font-size:13px;line-height:1.8}.nnext b{color:#332b26}
+.view .datebar{position:sticky;top:var(--topbar,52px);z-index:4;margin:10px 0 0;padding:8px;border-radius:14px;background:#fffaf4f2;border:1px solid #ead7c5;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.psum{display:flex;align-items:center;gap:10px}.psum .muted{display:block;font-size:12px}.psum b{font-size:15px}.psum .nowbtn{margin-left:auto}
+.facts{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:12px}
+.fact{background:#fffaf4;border:1px solid #ead7c5;border-radius:16px;padding:12px 14px;box-shadow:0 8px 28px #8a5b3a12;min-width:0}.fact.wide{grid-column:1/-1}
+.fact .k{display:block;font-size:12px;color:#8d796a}.fact b{display:block;font-size:19px;margin-top:2px;color:#244b78}.fact .sub{display:block;font-size:13px;color:#6e5849;margin-top:2px}
+.fact .one{margin:8px 0 0;font-size:15px;line-height:1.65;color:#332b26}
+.fact details{margin-top:8px;padding-top:6px;border-top:1px dashed #ead7c5}.fact summary{font-size:13px;color:#ca7b2f;cursor:pointer}.fact details p{margin:7px 0 0;font-size:14px;line-height:1.7;color:#6e5849}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.tags span{padding:2px 9px;border-radius:10px;background:#fbe9d5;color:#8a5a2b;font-size:12px}.tags span.bad{background:#f3e7e2;color:#8d796a}
+.fact .ph{margin:8px 0 0;padding-top:8px;border-top:1px dashed #ead7c5;font-size:12px;color:#b19c8c}
+.chlist .it{padding:8px 0;border-top:1px solid #f0e2d4;line-height:1.55;color:#6e5849;font-size:14px}.chlist .it:first-child{border-top:0}.chlist .it strong{color:#332b26}
+/* 本命图两侧的星体数据：左设计（粉）、右个性（蓝），与线条同色 */
+.chartwrap{position:relative}
+.pcol{position:absolute;top:1.5%;width:19.5%;padding:4px 0 5px;border-radius:10px;background:#fffffff2;box-shadow:0 2px 10px #8a5b3a1f;font-variant-numeric:tabular-nums}
+.pcol.left{left:1.5%}.pcol.right{right:1.5%}
+.pcol .hd{margin:0 5px 3px;border-radius:7px;color:#fff;font-size:11px;font-weight:600;text-align:center;line-height:1.7}.left .hd{background:#f04f87}.right .hd{background:#244b78}
+.pcol .r{display:flex;align-items:center;justify-content:space-between;padding:0 7px 0 6px;font-size:12px;line-height:1.72;color:#332b26}
+.pcol .sym{width:15px;text-align:center;font-size:13px}.left .sym{color:#f04f87}.right .sym{color:#244b78}
+.titlerow{align-items:center}.who{margin-left:auto;display:flex;align-items:center;gap:4px;min-width:0}
+.who select{max-width:150px;min-height:34px;padding:4px 26px 4px 12px;border:1px solid #d8b48b;border-radius:17px;background:#fffaf4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23ca7b2f'/%3E%3C/svg%3E") no-repeat right 10px center;color:#5f4634;font:600 14px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;-webkit-appearance:none;appearance:none;text-overflow:ellipsis}
+.mehead{display:flex;align-items:center;gap:8px;margin-bottom:6px}.mehead h2{margin:0;flex:1}
+.pitem{padding:12px 0;border-top:1px solid #eadaca}.pitem:first-child{border-top:0}.pitem b{font-size:16px}
+.badge{display:inline-block;margin-left:6px;padding:0 7px;border-radius:9px;background:#ca7b2f;color:#fff;font-size:11px;vertical-align:2px}
+.pitem .muted{display:block;font-size:13px;margin-top:2px}
+.pact{display:flex;gap:6px;margin-top:8px}.pact button{flex:1;min-height:34px;border:0;border-radius:9px;background:#eadaca;color:#5f4634;font-size:13px;cursor:pointer}.pact button.del{flex:.7;background:#f6e3dc;color:#a2582a}
+.actions2{display:flex;gap:8px;margin-top:12px}.actions2 .btn{flex:1}
+.mhead{display:flex;align-items:center;gap:6px}.mhead .pick{font-size:16px}
+details.planets summary{cursor:pointer;font-size:17px;font-weight:600;list-style:none}details.planets summary::after{content:' ▾';color:#8d796a;font-size:13px}details.planets[open] summary{margin-bottom:10px}
+.muted{color:#8d796a}.panel{margin-top:12px;background:#fffaf4;border:1px solid #ead7c5;border-radius:16px;padding:14px;box-shadow:0 8px 28px #8a5b3a12}
+.panel h2{margin:0 0 10px;font-size:17px}.panel h3{margin:0 0 10px;font-size:15px}
+.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field.wide{grid-column:1/-1}.field label{font-size:12px;color:#8d796a}
+.field input{width:100%;min-width:0;min-height:42px;padding:9px 10px;border:1px solid #d8c2ad;border-radius:10px;font-size:16px;background:#fff;color:#332b26;-webkit-appearance:none;appearance:none}
+.btn{min-height:42px;padding:9px 14px;border:0;border-radius:10px;background:#ca7b2f;color:#fff;font-size:15px;cursor:pointer}.btn.secondary{background:#eadaca;color:#5f4634}.btn.block{width:100%;margin-top:12px}
+.daynav{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px;margin-top:12px}.daynav .btn{padding:9px 6px}
+#status{margin-top:10px;font-size:12px;line-height:1.6}
+.legend{margin-top:10px;color:#6e5849;font-size:12px;line-height:1.9}
+.tablewrap{overflow-x:auto}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:6px 2px;border-bottom:1px solid #eadaca;text-align:center;white-space:nowrap}.table th{color:#8d796a;font-size:11px}
+.note{margin-top:12px;font-size:12px;color:#8d796a;line-height:1.6}
+.rhead{display:flex;gap:8px;flex-wrap:wrap}.rhead .sel{flex:1}.rhead .btn{flex:1.4}.hint{width:100%;font-size:12px;margin-top:2px}
+.sel{min-height:42px;padding:9px 10px;border:1px solid #d8c2ad;border-radius:10px;background:#fff;font-size:16px;color:#332b26}
+.chead{display:flex;align-items:center;gap:10px}.chead h2{margin:0;flex:1}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-top:12px}.wk{text-align:center;color:#8d796a;font-size:11px}
+.day{min-height:58px;min-width:0;background:#fff;border:1px solid #ead7c5;border-radius:8px;padding:4px 2px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.day.sel{border-color:#ca7b2f;box-shadow:inset 0 0 0 1px #ca7b2f;background:#fbe9d5}.chip{display:block;align-self:stretch;background:#eadaca;border-radius:5px;padding:1px 0;color:#5f4634;font-size:10px;line-height:1.5;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;white-space:nowrap}.chip.on{background:#ca7b2f!important;color:#fff}
+.chip.band{position:relative;color:#3a2a20;font-weight:600}.chip.jl{margin-left:-5px;border-top-left-radius:0;border-bottom-left-radius:0}.chip.jr{margin-right:-5px;border-top-right-radius:0;border-bottom-right-radius:0}.chip.gap{visibility:hidden;cursor:default}
+.chinfo{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #ead7c5;color:#6e5849;line-height:1.6;min-height:42px;font-size:14px}
+/* 土星回归 */
+.srow{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-top:1px solid #f0e2d4;font-size:14px;color:#332b26;font-variant-numeric:tabular-nums}.srow:first-of-type{border-top:0}.srow .muted{font-size:12px}.srow .when{margin-left:auto;font-size:12px;white-space:nowrap;color:#8d796a}.srow .when.on{color:#cf3d75;font-weight:600}
+.stag{display:inline-block;margin-left:6px;padding:0 8px;border-radius:9px;background:#eadaca;color:#5f4634;font-size:12px;font-weight:600;vertical-align:2px}.stag.on{background:#cf3d75;color:#fff}.stag.next{background:#ca7b2f;color:#fff}
+.fact .sk{display:block;margin-top:10px;font-size:12px;color:#8d796a}
+.srow.pt{cursor:pointer;margin:0 -8px;padding:7px 8px;border-radius:8px}.srow.pt.cur{background:#fde7ef;border-top-color:transparent}.srow.pt.cur+.srow{border-top-color:transparent}
+/* 土星回归的人体图两侧：每行「设计 · 符号 · 个性」，左本命（蓝）、右回归时刻（粉），与线条同色 */
+.pcol.pair{width:27%;top:1%}.pcol.pair .r{padding:0 5px;font-size:11px;line-height:1.45}.pcol.pair .r span:first-child,.pcol.pair .r span:last-child{width:30px}.pcol.pair .r span:last-child{text-align:right}
+.pcol .r.lab{font-size:9px;color:#8d796a;line-height:1.5}.pcol.natal .hd{background:#244b78}.pcol.natal .sym{color:#244b78}.pcol.ret .hd{background:#f04f87}.pcol.ret .sym{color:#f04f87}
+.channel-group h3{margin:0 0 10px;font-size:16px;color:#244b78}.channel-group--today{margin-top:18px;padding-top:16px;border-top:1px solid #ead7c5}.channel-group--today h3{color:#cf3d75}.channel-item{margin:8px 0;line-height:1.55;color:#6e5849}.channel-item strong{color:#332b26;font-weight:600}.channel-empty{color:#8d796a}.rd h3{margin:14px 0 4px;font-size:15px;color:#244b78}.rd p{margin:0;line-height:1.7}.reading-proof{margin:10px 0;padding:9px 12px;border:1px solid #ead7c5;border-radius:8px;background:#fff}.reading-proof summary,.reading-trace summary{cursor:pointer;color:#244b78}.reading-proof ul,.reading-trace ol{margin:8px 0 0;padding-left:22px;line-height:1.6}.reading-proof li,.reading-trace li{margin:7px 0}.reading-trace{margin-top:5px;color:#6e5849}.reading-trace summary{font-size:12px}.reading-trace small{display:block;color:#8d796a;font-size:12px}.reading-gap{margin-top:5px;font-size:12px;color:#a2582a}
+</style></head><body><main class="app">
+<header class="topbar" id="topbar"><div class="titlerow"><h1>流日人类图</h1><label class="who" title="切换档案"><select id="profileSelect" aria-label="正在看的档案"></select></label></div></header>
+<!-- 当前档案的出生资料：所有计算都读这里；在「我的」里添加、修改、切换 -->
+<input id="timezone" type="hidden" value="+08:00"><input id="birthDate" type="hidden" value=""><input id="birthTime" type="hidden" value="">
+
+<!-- 标签一：人体图（只看自己的本命图） -->
+<div class="view" id="v-chart">
+<section class="panel"><div class="chartwrap"><div id="chart"></div><div class="pcol left" id="colDesign" hidden></div><div class="pcol right" id="colPerson" hidden></div></div><div class="legend"><span style="color:#244b78">●</span> 已激活闸门　<span style="color:#244b78">━</span> 个性　<span style="color:#f04f87">━</span> 设计　<span style="color:#d8cdc4">━</span> 未激活　有颜色的中心为已定义中心</div><div id="status" class="muted"></div></section>
+<div class="facts">
+  <section class="fact"><span class="k">类型</span><b id="hdType">—</b><div class="tags" id="hdTypeTags"></div><p class="one" id="hdTypeOne"></p><details><summary>展开说明</summary><div id="hdTypeMore"></div></details></section>
+  <section class="fact"><span class="k">权威 · 做决定的方式</span><b id="hdAuthority">—</b><p class="one" id="hdAuthorityOne"></p><details><summary>展开说明</summary><div id="hdAuthorityMore"></div></details></section>
+  <section class="fact"><span class="k">人生角色</span><b id="hdProfile">—</b><span class="sub" id="hdProfileNames"></span><p class="one" id="hdProfileOne"></p><details><summary>两条爻线分别代表什么</summary><div id="hdProfileMore"></div></details></section>
+  <section class="fact"><span class="k">轮回交叉</span><b id="hdCross">—</b><span class="sub" id="hdCrossGates"></span><p class="one" id="hdCrossOne"></p></section>
+  <section class="fact"><span class="k">定义的通道</span><div id="channels" class="chlist"></div><span class="sub" id="hdCenters"></span></section>
+</div>
+</div>
+
+<!-- 标签二：解读（流日：接通的通道） -->
+<div class="view" id="v-read" hidden>
+<div class="datebar"><button class="arrow" id="prev" aria-label="前一天">‹</button><label class="pick"><span id="dateLabel">选择日期</span><input id="transitDate" type="date"></label><label class="pick time"><span id="timeLabel">08:41</span><input id="transitTime" type="time" value="08:41"></label><button class="arrow" id="next" aria-label="后一天">›</button><button class="btn refresh" id="generate" title="重新计算" aria-label="重新计算">↻</button></div>
+<section class="panel ncard"><div class="nhead"><h2 id="nowTitle">接通的通道</h2><button class="nowbtn" id="nowBtn">回到现在</button></div><div id="nowList" class="muted">计算中…</div></section>
+<div id="reading" hidden></div>
+</div>
+
+<!-- 标签三：月历（只调月份） -->
+<div class="view" id="v-month" hidden>
+<section class="panel"><div class="mhead"><button class="arrow" id="prevMonth" aria-label="上个月">‹</button><label class="pick"><span id="monthLabel"></span><input id="monthInput" type="month"></label><button class="arrow" id="nextMonth" aria-label="下个月">›</button><button class="btn secondary refresh" id="monthBtn" aria-label="刷新">↻</button></div><div class="muted hint" style="margin-top:8px">每天取中午 12:00 接通的通道；月亮大约半天就换一个闸门，只靠月亮接通的通道不列入。连续 3 天以上的通道连成色带。点通道看说明，点日期空白处看那天的详细接通情况。</div><div id="cal"></div><div id="chinfo" class="chinfo muted" hidden>点一个通道，这里会显示它的说明。</div></section>
+</div>
+
+<!-- 标签四：土星回归（流年土星回到出生土星的位置） -->
+<div class="view" id="v-saturn" hidden>
+<section class="panel"><select id="satPick" class="sel" style="width:100%" aria-label="选择第几次土星回归"></select><div class="chartwrap" style="margin-top:10px"><div id="satChart"></div><div class="pcol pair left natal" id="satNatal" hidden></div><div class="pcol pair right ret" id="satReturn" hidden></div></div><div class="legend"><span style="color:#244b78">━</span> 本命　<span style="color:#f04f87">━</span> 土星回归时刻　粉色边框的中心：回归时刻被接通</div><div id="satStatus" class="muted"></div></section>
+<div id="saturn" class="facts"></div>
+</div>
+
+<!-- 标签五：我的（管理多个档案） -->
+<div class="view" id="v-me" hidden>
+<section class="panel"><div class="mehead"><h2>我的档案</h2><button class="nowbtn" id="addProfile">＋ 添加</button></div><div class="muted hint">可以存很多人的档案；在顶部切换正在看谁，人体图、解读、月历、土星回归都会跟着换。</div><div id="profileList" style="margin-top:6px"></div></section>
+<section class="panel" id="profileEditor" hidden><h3 id="editorTitle">添加档案</h3><div class="form"><div class="field wide"><label>名字</label><input id="pName" placeholder="例如 我、妈妈、小王"></div><div class="field"><label>出生日期</label><input id="pDate" type="date"></div><div class="field"><label>出生时间</label><input id="pTime" type="time"></div><div class="field wide"><label>出生地时区</label><input id="pZone" value="+08:00"></div></div><div class="actions2"><button class="btn secondary" id="pCancel">取消</button><button class="btn" id="profileBtn">保存档案</button></div><div class="note">档案只保存在本机浏览器里。中国大陆出生填 +08:00 即可，会自动处理 1986—1991 年夏令时；其他地区填时区，例如 Asia/Tokyo。</div></section>
+</div>
+</main>
+<nav class="tabs" id="tabs"><button id="tab-chart" class="on"><i>◎</i>人体图</button><button id="tab-read"><i>✎</i>解读</button><button id="tab-month"><i>▦</i>月历</button><button id="tab-saturn"><i>♄︎</i>土星回归</button><button id="tab-me"><i>☺</i>我的</button></nav>
+<script src="vendor/swisseph.js"></script>
+<script src="vendor/swisseph-wasm.js"></script>
+<script src="engine.js"></script>
+<script src="saturn.js"></script>
+<script src="localapi.js"></script>
+<script src="channels.js?v=channel-groups"></script>
+<script src="bodygraph.js?v=target"></script>
+<script src="hdsummary.js?v=1"></script>
+<script src="hdcontent.js?v=1"></script>
+<script src="hdcrosses.js?v=1"></script>
+<script src="monthlayout.js?v=1"></script>
+<script>
+const NAMES=['太阳','地球','月亮','水星','金星','火星','木星','土星','天王星','海王星','冥王星','北交点','南交点'];
+const CHANNELS=[[1,8],[2,14],[3,60],[4,63],[5,15],[6,59],[7,31],[9,52],[10,20],[11,56],[12,22],[13,33],[16,48],[17,62],[18,58],[19,49],[21,45],[23,43],[24,61],[25,51],[26,44],[27,50],[28,38],[29,46],[30,41],[32,54],[10,34],[10,57],[20,34],[20,57],[34,57],[35,36],[37,40],[39,55],[42,53],[47,64]];
+const $=id=>document.getElementById(id);
+function active(p){return new Set(Object.values(p).map(x=>x.gl.gate))}
+function draw(person={},design={},flow={},flowDesign={}){drawBodygraph(person,design,flow,flowDesign)}
+function localOffset(){let m=-new Date().getTimezoneOffset(),a=Math.abs(m);return(m<0?'-':'+')+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0')}
+function birthTimezone(){let value=$('timezone').value.trim();return value==='+08:00'?'Asia/Shanghai':value}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// ---------- 月历（只调月份） ----------
+let calMonth=null;
+function monthText(m){let [y,mo]=m.split('-');return `${y}年${+mo}月`}
+async function month(){let m=calMonth||$('transitDate').value.slice(0,7);calMonth=m;if($('monthLabel')){$('monthLabel').textContent=monthText(m);$('monthInput').value=m}$('cal').textContent='计算中…';let p=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone(),transitTimezone:localOffset(),transitDate:m+'-01',transitTime:'12:00',month:m});try{let r=await fetch('/api/month?'+p),j=await r.json();if(!r.ok)throw new Error(j.error);let first=new Date(m+'-01T00:00:00Z').getUTCDay(),L=typeof MonthLayout!=='undefined'?MonthLayout.layoutMonth(j.days.map(d=>d.connections.map(c=>c.channel)),first):null;
+  // 延续的通道排在上面、同一周保持同一行；持续 3 天以上的连成色带，名称只在开头和每周第一天显示
+  let chip=c=>c?`<span class="chip${c.long?' band':''}${c.joinL?' jl':''}${c.joinR?' jr':''}" data-ch="${c.channel}" title="${c.channel} ${CH_NAME[c.channel]||''} · 连续 ${c.days} 天"${c.long?` style="background:${c.color}"`:''}>${c.label?c.channel:'&nbsp;'}</span>`:'<span class="chip gap">&nbsp;</span>';
+  let cells=Array(first).fill('<div></div>').concat(j.days.map((d,i)=>`<div class="day${d.date===$('transitDate').value?' sel':''}" data-date="${d.date}"><b>${+d.date.slice(8)}</b>${d.connections.length?'':'<span class="muted">—</span>'}${L?L[i].map(chip).join(''):d.connections.map(c=>`<span class="chip" data-ch="${c.channel}">${c.channel}</span>`).join('')}</div>`));$('cal').innerHTML='<div class="cal">'+['日','一','二','三','四','五','六'].map(w=>`<div class="wk">${w}</div>`).join('')+cells.join('')+'</div>';if($('chinfo'))$('chinfo').hidden=false}catch(e){$('cal').textContent='月历生成失败：'+e.message}}
+function shiftMonth(n){let [y,m]=(calMonth||$('transitDate').value.slice(0,7)).split('-').map(Number),d=new Date(y,m-1+n,1);calMonth=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;month()}
+
+// ---------- 人体图：只算自己的本命图 ----------
+// 星体符号（加 \uFE0E 让 iPhone 显示成文字符号而不是彩色表情）
+const SYMBOLS={'太阳':'☉','地球':'⊕','月亮':'☽','水星':'☿','金星':'♀','火星':'♂','木星':'♃','土星':'♄','天王星':'♅','海王星':'♆','冥王星':'♇','北交点':'☊','南交点':'☋'};
+function planetColumn(id,title,data){let el=$(id);if(!el)return;el.hidden=false;el.innerHTML=`<div class="hd">${title}</div>`+NAMES.map(n=>`<div class="r" title="${n}"><span class="sym">${SYMBOLS[n]}\uFE0E</span><span>${data[n].gl.gate}.${data[n].gl.line}</span></div>`).join('')}
+function renderFacts(person,design){
+  if(typeof HDSummary==='undefined'||!$('hdType'))return;
+  let h=HDSummary.summary(person,design),C=typeof HD_CONTENT!=='undefined'?HD_CONTENT:null;
+  let paras=list=>(list||[]).map(t=>`<p>${esc(t)}</p>`).join('');
+  $('hdType').textContent=h.type;
+  let t=C&&C.types[h.type];
+  $('hdTypeTags').innerHTML=`<span>策略：${esc(h.strategy)}</span>`+(t?`<span>标志：${esc(t.signature)}</span><span class="bad">非自己：${esc(t.notSelf)}</span>`:'');
+  $('hdTypeOne').textContent=t?t.one:'';$('hdTypeMore').innerHTML=t?paras(t.detail):'';
+  $('hdAuthority').textContent=h.authority;
+  let a=C&&C.authorities[h.authority];
+  $('hdAuthorityOne').textContent=a?a.one:'';$('hdAuthorityMore').innerHTML=a?paras(a.detail):'';
+  $('hdProfile').textContent=h.profile.text;$('hdProfileNames').textContent=h.profile.names;
+  let [pl,dl]=h.profile.text.split('/').map(Number);
+  $('hdProfileOne').textContent=C&&C.profiles[h.profile.text]||'';
+  $('hdProfileMore').innerHTML=C?paras([`个性第 ${pl} 爻 · ${C.lines[pl].name}（有意识、自己能察觉的一面）：${C.lines[pl].one}`,`设计第 ${dl} 爻 · ${C.lines[dl].name}（无意识、别人更容易看到的一面）：${C.lines[dl].one}`]):'';
+  let [ps,pe,ds,de]=h.cross.gates,cn=typeof HD_CROSSES!=='undefined'&&HD_CROSSES[`${ps}|${h.cross.angle}`];
+  $('hdCross').textContent=cn?`${h.cross.angle}之${cn[0]}`:h.cross.angle;
+  $('hdCrossGates').textContent=(cn?cn[1]+' · ':'')+`个性太阳/地球 ${ps}/${pe} · 设计太阳/地球 ${ds}/${de}`;
+  $('hdCrossOne').textContent=C&&C.angles[h.cross.angle]||'';
+  $('hdCenters').textContent=h.definedCenters.length?'已定义中心：'+h.definedCenters.join('、'):'没有已定义的中心';
+}
+async function loadChart(){
+  $('reading').textContent='';$('cal').textContent='';calMonth=null;if($('saturn'))$('saturn').innerHTML='';
+  if(!currentProfile())return firstRun();
+  storeProfiles();
+  let now=new Date(),params=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone(),transitTimezone:localOffset(),transitDate:`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,transitTime:'12:00'});
+  $('status').textContent='正在使用 Swiss Ephemeris 计算…';
+  try{
+    let response=await fetch('/api/chart?'+params);let result=await response.json();if(!response.ok)throw new Error(result.error||'计算失败');
+    let person=result.birth.personality,design=result.birth.design;
+    planetColumn('colDesign','设计',design);planetColumn('colPerson','个性',person);
+    let pa=new Set([...active(person),...active(design)]),pc=CHANNELS.filter(v=>pa.has(v[0])&&pa.has(v[1])).map(v=>v.join('-'));
+    $('channels').innerHTML=pc.map(id=>`<div class="it"><strong>${id} ${esc(CH_NAME[id]||'')}：</strong>${esc(CH_INFO[id]||'')}</div>`).join('')||'<div class="it">没有形成完整通道</div>';
+    renderFacts(person,design);
+    $('status').textContent='';
+    drawBodygraph(person,design,{},{},{natal:true});
+  }catch(error){$('status').textContent='计算失败：'+error.message;draw()}
+}
+
+// ---------- 解读：流日日期、接通的通道 ----------
+// 日期、时间显示成短文字，例如「10月20日 周二」。
+function updateDateLabel(){let dl=$('dateLabel'),tl=$('timeLabel');if(!dl||!tl)return;let v=$('transitDate').value;if(v){let d=new Date(v+'T00:00:00');dl.textContent=`${d.getMonth()+1}月${d.getDate()}日 周${'日一二三四五六'[d.getDay()]}`}tl.textContent=$('transitTime').value||'00:00'}
+async function generate(){updateDateLabel();$('reading').textContent='';await nowCard()}
+// ---------- 多个档案：存在浏览器里；当前档案同时写入 hd-profile，「此刻接通」小窗也读它 ----------
+const PROFILES_KEY='hd-profiles',PROFILE_KEY='hd-profile';
+let profiles=[],currentId=null,editingId=null;
+try{let d=JSON.parse(localStorage.getItem(PROFILES_KEY)||'null');if(d&&Array.isArray(d.list)&&d.list.length){profiles=d.list;currentId=d.current}else{let one=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');if(one)profiles=[{id:'p1',name:'我',...one}]}}catch(e){}
+// 页面里写了默认出生资料时，第一次打开直接用它；没写（公开版）就引导去「我的」添加
+if(!profiles.length&&$('birthDate').value)profiles=[{id:'p1',name:'我',birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:$('timezone').value}];
+const currentProfile=()=>profiles.find(p=>p.id===currentId)||profiles[0];
+function storeProfiles(){try{localStorage.setItem(PROFILES_KEY,JSON.stringify({list:profiles,current:currentId}));let c=currentProfile();localStorage.setItem(PROFILE_KEY,JSON.stringify({birthDate:c.birthDate,birthTime:c.birthTime,timezone:c.timezone}))}catch(e){}}
+function applyProfile(){let c=currentProfile();if(!c){renderProfiles();return}currentId=c.id;$('birthDate').value=c.birthDate;$('birthTime').value=c.birthTime;$('timezone').value=c.timezone;renderProfiles()}
+function renderProfiles(){
+  let sel=$('profileSelect'),list=$('profileList');if(!sel||!list)return;
+  sel.innerHTML=(profiles.length?'':'<option value="">还没有档案</option>')+profiles.map(p=>`<option value="${p.id}"${p.id===currentId?' selected':''}>${esc(p.name)}</option>`).join('')+'<option value="__manage">管理档案…</option>';
+  list.innerHTML=profiles.map(p=>`<div class="pitem" data-id="${p.id}"><b>${esc(p.name)}</b>${p.id===currentId?'<span class="badge">正在看</span>':''}<span class="muted">${esc(p.birthDate)} ${esc(p.birthTime)} · ${esc(p.timezone)}</span><div class="pact"><button data-act="view">查看</button><button data-act="edit">编辑</button><button data-act="del" class="del">删除</button></div></div>`).join('')||'<div class="pitem muted">还没有档案。点右上角「＋ 添加」，填写出生日期、时间和时区。</div>';
+}
+// 切换档案：人体图、解读、月历、土星回归都换成这个人的
+function selectProfile(id){currentId=id;applyProfile();loadChart();if(currentTab==='read')generate();if(currentTab==='month')month();if(currentTab==='saturn')saturn()}
+// 还没有任何档案：只能停在「我的」，并直接打开添加表单
+function firstRun(){showTab('me');openEditor(null);$('editorTitle').textContent='第一次使用：先添加一个档案'}
+function openEditor(id){editingId=id;let p=profiles.find(x=>x.id===id)||{name:'',birthDate:'',birthTime:'',timezone:'+08:00'};$('editorTitle').textContent=id?'编辑档案':'添加档案';$('pName').value=p.name;$('pDate').value=p.birthDate;$('pTime').value=p.birthTime;$('pZone').value=p.timezone;$('profileEditor').hidden=false;$('profileEditor').scrollIntoView({behavior:'smooth'})}
+function saveEditor(){
+  let p={name:($('pName').value||'').trim()||'未命名',birthDate:$('pDate').value,birthTime:$('pTime').value,timezone:($('pZone').value||'').trim()||'+08:00'};
+  if(!p.birthDate||!p.birthTime){if($('pDate').focus)$('pDate').focus();return}
+  if(editingId){Object.assign(profiles.find(x=>x.id===editingId),p);currentId=editingId}
+  else{let id='p'+Date.now()+Math.floor(Math.random()*1e3);profiles.push({id,...p});currentId=id}
+  editingId=null;if($('profileEditor'))$('profileEditor').hidden=true;
+  applyProfile();if($('tabs'))showTab('chart');return loadChart();
+}
+applyProfile();
+// 月历里点某个通道：下方显示它的名称和说明；点日期空白处：到「解读」看那天的详细接通情况。
+$('cal').onclick=e=>{let chip=e.target.closest&&e.target.closest('.chip');if(!chip){let day=e.target.closest&&e.target.closest('[data-date]');if(day){$('transitDate').value=day.dataset.date;showTab('read');generate()}return}document.querySelectorAll('.chip.on').forEach(x=>x.classList.remove('on'));chip.classList.add('on');let ch=chip.dataset.ch,box=$('chinfo');box.classList.remove('muted');box.innerHTML=`<strong>${esc(ch)} ${esc(CH_NAME[ch]||'')}：</strong>${esc(CH_INFO[ch]||'')}`};
+// 所选时刻接通的通道，含起止时间、剩余时间、由哪颗星体接通（只列自己没有、由流日补上的闸门）。
+const pad2=n=>String(n).padStart(2,'0'),hm=d=>pad2(d.getHours())+':'+pad2(d.getMinutes());
+function selectedMoment(){return new Date(`${$('transitDate').value}T${$('transitTime').value||'00:00'}:00`)}
+function spanText(iso,base){let d=new Date(iso),a=new Date(base),b=new Date(d);a.setHours(0,0,0,0);b.setHours(0,0,0,0);let diff=Math.round((b-a)/864e5);return (diff===0?'':diff===1?'次日 ':`${d.getMonth()+1}/${d.getDate()} `)+hm(d)}
+function lasting(ms){let m=Math.max(0,Math.round(ms/6e4)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;return d?`${d}天${h?h+'小时':''}`:h?`${h}小时${mm?mm+'分':''}`:`${mm}分钟`}
+async function nowCard(){
+  let box=$('nowList');if(!box)return;
+  let at=selectedMoment();
+  $('nowTitle').textContent=`${at.getMonth()+1}月${at.getDate()}日 ${hm(at)} 接通的通道`;
+  box.className='muted';box.textContent='计算中…';
+  let p=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone(),at:`${$('transitDate').value}T${$('transitTime').value||'00:00'}:00${localOffset()}`});
+  try{
+    let r=await fetch('/api/now?'+p),j=await r.json();if(!r.ok)throw new Error(j.error||'计算失败');
+    let rows=j.channels.map(c=>{
+      let s=c.start&&new Date(c.start),e=c.end&&new Date(c.end);
+      let left=e?`还剩 ${lasting(e-at)}`:`${j.maxDays} 天以上`;
+      let span=`${s?spanText(c.start,at):'早已接通'} – ${e?spanText(c.end,at):'…'}`;
+      let flows=c.gates.filter(g=>!g.sources.some(x=>x.owner==='个人')).flatMap(g=>g.sources.map(x=>({gate:g.gate,...x})));
+      let srcs=flows.map((x,i)=>`<div class="src"><span class="gl">${x.gate}.${x.line}</span>${esc(x.owner+x.side)} · ${esc(x.planet)}${i===0?`<span class="span">${span}</span>`:''}</div>`).join('');
+      let bar=s&&e?`<div class="bar"><i style="width:${Math.min(100,Math.max(0,(at-s)/(e-s)*100)).toFixed(1)}%"></i></div>`:'';
+      return `<div class="ch"><div class="row"><span class="no">${esc(c.channel)}</span><span class="name">${esc(CH_NAME[c.channel]||'')}</span><span class="left">${left}</span></div><div class="desc">${esc(CH_INFO[c.channel]||'')}</div>${srcs}${bar}</div>`;
+    }).join('')||'<div class="muted">这个时刻没有被流日接通的通道</div>';
+    let next=j.upcoming.slice(0,2).map(u=>`${spanText(u.start,at)} – ${u.end?spanText(u.end,at):'…'} 接通 <b>${esc(u.channel)} ${esc(CH_NAME[u.channel]||'')}</b>`).join('<br>');
+    box.className='';box.innerHTML=rows+(next?`<div class="nnext">接下来 24 小时：<br>${next}</div>`:'');
+  }catch(e){box.textContent='计算失败：'+e.message}
+}
+
+// ---------- 土星回归：每次回归的精确时刻（逆行时 1 个或 3 个）与流年土星经过出生土星闸门的时间段 ----------
+const ymd=d=>`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+function untilText(ms){let days=Math.ceil(ms/864e5);if(days<60)return `还有 ${days} 天`;let months=Math.round(days/30.44),y=Math.floor(months/12),m=months%12;return '还有 '+(y?y+' 年':'')+(m?m+' 个月':'')}
+let satData=null,satPick=0,satExact=0,satSeq=0;
+// 先算出三次回归，下拉框默认选离现在最近的一次；再画「本命 + 所选精确时刻」的人体图和下方详情。
+async function saturn(){
+  let box=$('saturn');if(!box)return;
+  let seq=++satSeq;satData=null;
+  box.innerHTML='<section class="fact wide muted">计算中…</section>';$('satChart').innerHTML='';$('satPick').innerHTML='';$('satNatal').hidden=$('satReturn').hidden=true;
+  let p=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone()});
+  try{
+    let r=await fetch('/api/saturn?'+p),j=await r.json();if(!r.ok)throw new Error(j.error||'计算失败');
+    if(seq!==satSeq)return;
+    satData=j;satExact=0;
+    let now=Date.now(),gap=x=>Math.abs(new Date(x.exacts[0].time)-now);
+    satPick=j.returns.reduce((best,x,i)=>gap(x)<gap(j.returns[best])?i:best,0);
+    $('satPick').innerHTML=j.returns.map((x,i)=>{let t=new Date(x.exacts[0].time);return `<option value="${i}"${i===satPick?' selected':''}>第 ${x.number} 次土星回归 · ${t.getFullYear()}年${t.getMonth()+1}月 · ${x.exacts[0].age.toFixed(1)} 岁${x.exacts.length>1?'（逆行，'+x.exacts.length+' 个精确点）':''}</option>`}).join('');
+    await renderSaturn();
+  }catch(e){if(seq===satSeq)box.innerHTML=`<section class="fact wide">计算失败：${esc(e.message)}</section>`}
+}
+function pairColumn(id,title,design,person){let el=$(id);el.hidden=false;el.innerHTML=`<div class="hd">${title}</div><div class="r lab"><span>设计</span><span></span><span>个性</span></div>`+NAMES.map(n=>`<div class="r" title="${n}"><span>${design[n].gl.gate}.${design[n].gl.line}</span><span class="sym">${SYMBOLS[n]}\uFE0E</span><span>${person[n].gl.gate}.${person[n].gl.line}</span></div>`).join('')}
+async function renderSaturn(){
+  let j=satData;if(!j)return;
+  let seq=++satSeq,x=j.returns[satPick],at=new Date(x.exacts[satExact].time),now=Date.now(),n=j.natal;
+  let times=x.exacts.map(e=>new Date(e.time)),spans=x.gateSpans.map(([a,b])=>[a&&new Date(a),b&&new Date(b)]);
+  let from=spans.length?spans[0][0]:times[0],to=spans.length?spans[spans.length-1][1]:times[times.length-1];
+  let tag=to&&to<now?'<span class="stag">已过去</span>':from&&from<=now?'<span class="stag on">进行中</span>':`<span class="stag next">${untilText(times[0]-now)}</span>`;
+  let deg=Math.floor(n.lon%30),min=Math.floor((n.lon%30-deg)*60),sign='白羊 金牛 双子 巨蟹 狮子 处女 天秤 天蝎 射手 摩羯 水瓶 双鱼'.split(' ')[Math.floor(n.lon/30)];
+  let exacts=times.map((t,i)=>`<div class="srow pt${i===satExact?' cur':''}" data-exact="${i}"><span>${ymd(t)} ${hm(t)}</span><span class="muted">${x.exacts[i].age.toFixed(1)} 岁</span><span class="when${t>now?' on':''}">${t<now?'已过':untilText(t-now)}</span></div>`).join('');
+  let windows=spans.map(([a,b])=>`<div class="srow"><span>${a?ymd(a):'…'} – ${b?ymd(b):'…'}</span><span class="when${a&&a<=now&&(!b||now<b)?' on':''}">${b&&b<now?'已过':a&&a<=now?'正在闸门内':''}</span></div>`).join('');
+  $('saturn').innerHTML=`<section class="fact wide"><span class="k">第 ${x.number} 次土星回归</span><b>出生土星 ${n.gate}.${n.line}${tag}</b><span class="sub">${sign} ${deg}°${String(min).padStart(2,'0')}′ · 黄经 ${n.lon.toFixed(2)}°</span><span class="sk">精确回归时刻${times.length>1?'（逆行，共 '+times.length+' 次；点一下，上图换成那个时刻）':''}</span>${exacts}<span class="sk">流年土星在 ${n.gate} 号闸门的时间段</span>${windows}</section>`;
+  $('satStatus').textContent='计算中…';
+  // 回归时刻按 UTC 传给 /api/chart，返回本命图和那个时刻的流日图
+  let iso=at.toISOString(),p=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone(),transitDate:iso.slice(0,10),transitTime:iso.slice(11,16),transitTimezone:'+00:00'});
+  try{
+    let r=await fetch('/api/chart?'+p),c=await r.json();if(!r.ok)throw new Error(c.error||'计算失败');
+    if(seq!==satSeq)return;
+    drawBodygraph(c.birth.personality,c.birth.design,c.transit.personality,c.transit.design,{target:'satChart'});
+    pairColumn('satNatal','本命',c.birth.design,c.birth.personality);
+    pairColumn('satReturn','土星回归',c.transit.design,c.transit.personality);
+    $('satStatus').textContent='';
+  }catch(e){if(seq===satSeq)$('satStatus').textContent='人体图计算失败：'+e.message}
+}
+
+// ---------- 底部五个标签：人体图 / 解读 / 月历 / 土星回归 / 我的 ----------
+let currentTab='chart';
+function showTab(name){if(!currentProfile())name='me';currentTab=name;['chart','read','month','saturn','me'].forEach(t=>{$('v-'+t).hidden=t!==name;$('tab-'+t).className=t===name?'on':''});window.scrollTo(0,0);if(name==='month'&&!$('cal').innerHTML)month();if(name==='read')nowCard();if(name==='saturn'&&!$('saturn').innerHTML)saturn()}
+if($('tabs')){
+  ['chart','read','month','saturn','me'].forEach(t=>$('tab-'+t).onclick=()=>showTab(t));
+  // 顶部只能切换已有档案；选「管理档案…」去「我的」
+  $('profileSelect').onchange=e=>{let v=e.target.value;if(v==='__manage'){e.target.value=currentId;showTab('me')}else selectProfile(v)};
+  $('addProfile').onclick=()=>openEditor(null);$('pCancel').onclick=()=>{editingId=null;$('profileEditor').hidden=true};
+  $('profileList').onclick=e=>{let b=e.target.closest('button[data-act]');if(!b)return;let id=b.closest('[data-id]').dataset.id,p=profiles.find(x=>x.id===id);
+    if(b.dataset.act==='view'){selectProfile(id);showTab('chart')}
+    else if(b.dataset.act==='edit')openEditor(id);
+    else if(profiles.length<2)alert('至少要保留一个档案。');
+    else if(confirm(`删除「${p.name}」的档案？`)){profiles=profiles.filter(x=>x.id!==id);if(currentId===id){currentId=profiles[0].id;applyProfile();loadChart()}else renderProfiles();storeProfiles()}};
+  document.documentElement.style.setProperty('--topbar',$('topbar').offsetHeight+'px');
+  // 「回到现在」：把流日日期时间设成此刻
+  $('nowBtn').onclick=()=>{let n=new Date();$('transitDate').value=`${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`;$('transitTime').value=hm(n);generate()};
+  $('transitDate').onchange=generate;$('transitTime').onchange=generate;
+  $('satPick').onchange=()=>{satPick=+$('satPick').value;satExact=0;renderSaturn()};
+  $('saturn').onclick=e=>{let row=e.target.closest('[data-exact]');if(row&&+row.dataset.exact!==satExact){satExact=+row.dataset.exact;renderSaturn()}};
+  $('prevMonth').onclick=()=>shiftMonth(-1);$('nextMonth').onclick=()=>shiftMonth(1);
+  $('monthInput').onchange=()=>{if($('monthInput').value){calMonth=$('monthInput').value;month()}};
+}
+// 默认看此刻
+let today=new Date();$('transitDate').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;$('transitTime').value=String(today.getHours()).padStart(2,'0')+':'+String(today.getMinutes()).padStart(2,'0');
+$('generate').onclick=generate;$('profileBtn').onclick=saveEditor;$('monthBtn').onclick=month;$('prev').onclick=()=>{let d=new Date($('transitDate').value+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-1);$('transitDate').value=d.toISOString().slice(0,10);generate()};$('next').onclick=()=>{let d=new Date($('transitDate').value+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);$('transitDate').value=d.toISOString().slice(0,10);generate()};
+updateDateLabel();loadChart();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
