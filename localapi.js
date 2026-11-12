@@ -1,9 +1,9 @@
-// 公开版没有后台服务：页面照旧请求 /api/chart、/api/now、/api/month、/api/saturn，
+// 公开版没有后台服务：页面照旧请求 /api/chart、/api/now、/api/month、/api/saturn、/api/bazi，
 // 这里在浏览器里接住这些请求，用 engine.js（Swiss Ephemeris WebAssembly）算好，按本机版接口同样的格式返回。
 (function (root) {
   'use strict';
 
-  const E = root.LiuriEngine, S = root.HDSaturn;
+  const E = root.LiuriEngine, S = root.HDSaturn, B = root.HDBazi;
   const ready = E.init();
   const realFetch = root.fetch ? root.fetch.bind(root) : null;
   const iso = ms => ms == null ? null : new Date(ms).toISOString();
@@ -34,6 +34,7 @@
       return { days };
     },
     saturn(q) { return S.saturnReturn(birthOf(q)); },
+    bazi(q) { return B.baziView(birthOf(q), q.get('timezone') || '+08:00', q.get('gender') === '男', q.get('date'), transitZone(q)); },
   };
 
   root.fetch = async function (url, options) {

@@ -82,6 +82,12 @@ details.planets summary{cursor:pointer;font-size:17px;font-weight:600;list-style
 /* 土星回归的人体图两侧：每行「设计 · 符号 · 个性」，左本命（蓝）、右回归时刻（粉），与线条同色 */
 .pcol.pair{width:27%;top:1%}.pcol.pair .r{padding:0 5px;font-size:11px;line-height:1.45}.pcol.pair .r span:first-child,.pcol.pair .r span:last-child{width:30px}.pcol.pair .r span:last-child{text-align:right}
 .pcol .r.lab{font-size:9px;color:#8d796a;line-height:1.5}.pcol.natal .hd{background:#244b78}.pcol.natal .sym{color:#244b78}.pcol.ret .hd{background:#f04f87}.pcol.ret .sym{color:#f04f87}
+/* 八字与卦：个性蓝、设计粉，与人体图一致 */
+.bz{width:100%;border-collapse:collapse;text-align:center;table-layout:fixed}.bz th{font-size:12px;font-weight:400;color:#8d796a;padding:2px 0 6px}.bz td{font-size:19px;font-weight:600;padding:5px 0;letter-spacing:1px}.bz tr+tr td,.bz tr+tr th{border-top:1px solid #f0e2d4}.bz .p{color:#244b78}.bz .d{color:#e2457f}.bz tbody th{font-size:13px;font-weight:600;padding:5px 0}
+.gt{width:100%;border-collapse:collapse;table-layout:fixed}.gt th,.gt td{padding:8px 0;border-top:1px solid #f0e2d4;text-align:left;font-weight:400}.gt tr:first-child th,.gt tr:first-child td{border-top:0}.gt thead th{font-size:12px;color:#8d796a;padding-top:0}.gt tr>:first-child{width:84px}.gt tbody th{font-size:13px;color:#6e5849}.gt td{white-space:nowrap;font-size:15px}.gt td b{font-weight:600}.gt td span{margin-left:5px;font-size:13px;font-variant-numeric:tabular-nums}.gt .p{color:#244b78}.gt .d{color:#e2457f}.gt small{display:block;font-size:11px;color:#8d796a;white-space:normal}
+.tnav{display:flex;align-items:center;gap:6px;margin-bottom:10px}.tnav .pick{font-size:14px}
+.bcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-top:12px}.bcal .day{min-height:40px;justify-content:center;font-size:13px;font-variant-numeric:tabular-nums}.bcal .day.today{box-shadow:inset 0 0 0 2px #ca7b2f;font-weight:700}.bcal .day.none{background:#fff;color:#c4b2a3}
+.blist{margin-top:10px}.blist .it{display:flex;align-items:center;gap:8px;padding:8px 6px;border-top:1px solid #f0e2d4;font-size:14px}.blist .it:first-child{border-top:0}.blist .it.cur{background:#fdf1e4;border-radius:8px}.blist i{flex:none;width:12px;height:12px;border-radius:3px}.blist .dt{flex:none;width:86px;font-size:12px;color:#6e5849;font-variant-numeric:tabular-nums}.blist .g{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.45}.blist .g span span{margin-left:5px;font-size:13px;font-variant-numeric:tabular-nums}.blist .g .p{color:#244b78}.blist .g .d{color:#e2457f}
 .channel-group h3{margin:0 0 10px;font-size:16px;color:#244b78}.channel-group--today{margin-top:18px;padding-top:16px;border-top:1px solid #ead7c5}.channel-group--today h3{color:#cf3d75}.channel-item{margin:8px 0;line-height:1.55;color:#6e5849}.channel-item strong{color:#332b26;font-weight:600}.channel-empty{color:#8d796a}.rd h3{margin:14px 0 4px;font-size:15px;color:#244b78}.rd p{margin:0;line-height:1.7}.reading-proof{margin:10px 0;padding:9px 12px;border:1px solid #ead7c5;border-radius:8px;background:#fff}.reading-proof summary,.reading-trace summary{cursor:pointer;color:#244b78}.reading-proof ul,.reading-trace ol{margin:8px 0 0;padding-left:22px;line-height:1.6}.reading-proof li,.reading-trace li{margin:7px 0}.reading-trace{margin-top:5px;color:#6e5849}.reading-trace summary{font-size:12px}.reading-trace small{display:block;color:#8d796a;font-size:12px}.reading-gap{margin-top:5px;font-size:12px;color:#a2582a}
 </style></head><body><main class="app">
 <header class="topbar" id="topbar"><div class="titlerow"><h1>流日人类图</h1><label class="who" title="切换档案"><select id="profileSelect" aria-label="正在看的档案"></select></label></div></header>
@@ -118,17 +124,21 @@ details.planets summary{cursor:pointer;font-size:17px;font-weight:600;list-style
 <div id="saturn" class="facts"></div>
 </div>
 
-<!-- 标签五：我的（管理多个档案） -->
+<!-- 标签五：八字（个性、设计两套八字与卦） -->
+<div class="view" id="v-bazi" hidden><div id="bazi"></div></div>
+
+<!-- 标签六：我的（管理多个档案） -->
 <div class="view" id="v-me" hidden>
-<section class="panel"><div class="mehead"><h2>我的档案</h2><button class="nowbtn" id="addProfile">＋ 添加</button></div><div class="muted hint">可以存很多人的档案；在顶部切换正在看谁，人体图、解读、月历、土星回归都会跟着换。</div><div id="profileList" style="margin-top:6px"></div></section>
-<section class="panel" id="profileEditor" hidden><h3 id="editorTitle">添加档案</h3><div class="form"><div class="field wide"><label>名字</label><input id="pName" placeholder="例如 我、妈妈、小王"></div><div class="field"><label>出生日期</label><input id="pDate" type="date"></div><div class="field"><label>出生时间</label><input id="pTime" type="time"></div><div class="field wide"><label>出生地时区</label><input id="pZone" value="+08:00"></div></div><div class="actions2"><button class="btn secondary" id="pCancel">取消</button><button class="btn" id="profileBtn">保存档案</button></div><div class="note">档案只保存在本机浏览器里。中国大陆出生填 +08:00 即可，会自动处理 1986—1991 年夏令时；其他地区填时区，例如 Asia/Tokyo。</div></section>
+<section class="panel"><div class="mehead"><h2>我的档案</h2><button class="nowbtn" id="addProfile">＋ 添加</button></div><div class="muted hint">可以存很多人的档案；在顶部切换正在看谁，人体图、解读、月历、土星回归、八字都会跟着换。</div><div id="profileList" style="margin-top:6px"></div></section>
+<section class="panel" id="profileEditor" hidden><h3 id="editorTitle">添加档案</h3><div class="form"><div class="field wide"><label>名字</label><input id="pName" placeholder="例如 我、妈妈、小王"></div><div class="field"><label>出生日期</label><input id="pDate" type="date"></div><div class="field"><label>出生时间</label><input id="pTime" type="time"></div><div class="field"><label>性别</label><select id="pGender" class="sel"><option value="">请选择</option><option>女</option><option>男</option></select></div><div class="field"><label>出生地时区</label><input id="pZone" value="+08:00"></div></div><div class="actions2"><button class="btn secondary" id="pCancel">取消</button><button class="btn" id="profileBtn">保存档案</button></div><div class="note">档案只保存在本机浏览器里。中国大陆出生填 +08:00 即可，会自动处理 1986—1991 年夏令时；其他地区填时区，例如 Asia/Tokyo。</div></section>
 </div>
 </main>
-<nav class="tabs" id="tabs"><button id="tab-chart" class="on"><i>◎</i>人体图</button><button id="tab-read"><i>✎</i>解读</button><button id="tab-month"><i>▦</i>月历</button><button id="tab-saturn"><i>♄︎</i>土星回归</button><button id="tab-me"><i>☺</i>我的</button></nav>
+<nav class="tabs" id="tabs"><button id="tab-chart" class="on"><i>◎</i>人体图</button><button id="tab-read"><i>✎</i>解读</button><button id="tab-month"><i>▦</i>月历</button><button id="tab-saturn"><i>♄︎</i>土星回归</button><button id="tab-bazi"><i>☯︎</i>八字</button><button id="tab-me"><i>☺</i>我的</button></nav>
 <script src="vendor/swisseph.js"></script>
 <script src="vendor/swisseph-wasm.js"></script>
 <script src="engine.js"></script>
 <script src="saturn.js"></script>
+<script src="bazi.js"></script>
 <script src="localapi.js"></script>
 <script src="channels.js?v=channel-groups"></script>
 <script src="bodygraph.js?v=target"></script>
@@ -180,7 +190,7 @@ function renderFacts(person,design){
   $('hdCenters').textContent=h.definedCenters.length?'已定义中心：'+h.definedCenters.join('、'):'没有已定义的中心';
 }
 async function loadChart(){
-  $('reading').textContent='';$('cal').textContent='';calMonth=null;if($('saturn'))$('saturn').innerHTML='';
+  $('reading').textContent='';$('cal').textContent='';calMonth=null;if($('saturn'))$('saturn').innerHTML='';if($('bazi'))$('bazi').innerHTML='';
   if(!currentProfile())return firstRun();
   storeProfiles();
   let now=new Date(),params=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone(),transitTimezone:localOffset(),transitDate:`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,transitTime:'12:00'});
@@ -213,15 +223,15 @@ function applyProfile(){let c=currentProfile();if(!c){renderProfiles();return}cu
 function renderProfiles(){
   let sel=$('profileSelect'),list=$('profileList');if(!sel||!list)return;
   sel.innerHTML=(profiles.length?'':'<option value="">还没有档案</option>')+profiles.map(p=>`<option value="${p.id}"${p.id===currentId?' selected':''}>${esc(p.name)}</option>`).join('')+'<option value="__manage">管理档案…</option>';
-  list.innerHTML=profiles.map(p=>`<div class="pitem" data-id="${p.id}"><b>${esc(p.name)}</b>${p.id===currentId?'<span class="badge">正在看</span>':''}<span class="muted">${esc(p.birthDate)} ${esc(p.birthTime)} · ${esc(p.timezone)}</span><div class="pact"><button data-act="view">查看</button><button data-act="edit">编辑</button><button data-act="del" class="del">删除</button></div></div>`).join('')||'<div class="pitem muted">还没有档案。点右上角「＋ 添加」，填写出生日期、时间和时区。</div>';
+  list.innerHTML=profiles.map(p=>`<div class="pitem" data-id="${p.id}"><b>${esc(p.name)}</b>${p.id===currentId?'<span class="badge">正在看</span>':''}<span class="muted">${esc(p.birthDate)} ${esc(p.birthTime)} · ${esc(p.timezone)}${p.gender?' · '+esc(p.gender):''}</span><div class="pact"><button data-act="view">查看</button><button data-act="edit">编辑</button><button data-act="del" class="del">删除</button></div></div>`).join('')||'<div class="pitem muted">还没有档案。点右上角「＋ 添加」，填写出生日期、时间和时区。</div>';
 }
-// 切换档案：人体图、解读、月历、土星回归都换成这个人的
-function selectProfile(id){currentId=id;applyProfile();loadChart();if(currentTab==='read')generate();if(currentTab==='month')month();if(currentTab==='saturn')saturn()}
+// 切换档案：人体图、解读、月历、土星回归、八字都换成这个人的
+function selectProfile(id){currentId=id;applyProfile();loadChart();if(currentTab==='read')generate();if(currentTab==='month')month();if(currentTab==='saturn')saturn();if(currentTab==='bazi')bazi()}
 // 还没有任何档案：只能停在「我的」，并直接打开添加表单
 function firstRun(){showTab('me');openEditor(null);$('editorTitle').textContent='第一次使用：先添加一个档案'}
-function openEditor(id){editingId=id;let p=profiles.find(x=>x.id===id)||{name:'',birthDate:'',birthTime:'',timezone:'+08:00'};$('editorTitle').textContent=id?'编辑档案':'添加档案';$('pName').value=p.name;$('pDate').value=p.birthDate;$('pTime').value=p.birthTime;$('pZone').value=p.timezone;$('profileEditor').hidden=false;$('profileEditor').scrollIntoView({behavior:'smooth'})}
+function openEditor(id){editingId=id;let p=profiles.find(x=>x.id===id)||{name:'',birthDate:'',birthTime:'',timezone:'+08:00',gender:''};if($('pGender'))$('pGender').value=p.gender||'';$('editorTitle').textContent=id?'编辑档案':'添加档案';$('pName').value=p.name;$('pDate').value=p.birthDate;$('pTime').value=p.birthTime;$('pZone').value=p.timezone;$('profileEditor').hidden=false;$('profileEditor').scrollIntoView({behavior:'smooth'})}
 function saveEditor(){
-  let p={name:($('pName').value||'').trim()||'未命名',birthDate:$('pDate').value,birthTime:$('pTime').value,timezone:($('pZone').value||'').trim()||'+08:00'};
+  let p={name:($('pName').value||'').trim()||'未命名',birthDate:$('pDate').value,birthTime:$('pTime').value,timezone:($('pZone').value||'').trim()||'+08:00',gender:$('pGender')?$('pGender').value:''};
   if(!p.birthDate||!p.birthTime){if($('pDate').focus)$('pDate').focus();return}
   if(editingId){Object.assign(profiles.find(x=>x.id===editingId),p);currentId=editingId}
   else{let id='p'+Date.now()+Math.floor(Math.random()*1e3);profiles.push({id,...p});currentId=id}
@@ -302,11 +312,43 @@ async function renderSaturn(){
   }catch(e){if(seq===satSeq)$('satStatus').textContent='人体图计算失败：'+e.message}
 }
 
-// ---------- 底部五个标签：人体图 / 解读 / 月历 / 土星回归 / 我的 ----------
+// ---------- 八字：个性（出生时刻）、设计（设计时刻）两套八字，先天卦、后天卦，所选节气月的流年、流月与每 6 天一卦 ----------
+const BLOCK_COLORS=['#fde2c4','#dbe7f6','#fbdbe7','#dcefdc','#ece0f5'];
+let baziDay=null,baziSeq=0;
+const isoDay=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const shiftDay=(text,n)=>{let d=new Date(text+'T12:00:00');d.setDate(d.getDate()+n);return isoDay(d)};
+const md=text=>`${+text.slice(5,7)}/${+text.slice(8)}`;
+const guaText=(g,cls)=>g?`<span class="${cls}"><b>${esc(g.name)}</b><span>${g.number}.${g.line}</span></span>`:'—';
+async function bazi(){
+  let box=$('bazi');if(!box)return;
+  let c=currentProfile();
+  if(!c.gender){box.innerHTML='<section class="panel"><h2>八字</h2><p class="muted">排卦要区分男女。请先在「我的」里编辑这个档案，选择性别。</p><button class="btn block" id="baziGender">去填写性别</button></section>';$('baziGender').onclick=()=>{showTab('me');openEditor(currentId)};return}
+  let seq=++baziSeq,today=isoDay(new Date());baziDay=baziDay||today;
+  if(!box.innerHTML)box.innerHTML='<section class="panel muted">计算中…</section>';
+  let p=new URLSearchParams({birthDate:$('birthDate').value,birthTime:$('birthTime').value,timezone:birthTimezone(),gender:c.gender,date:baziDay,transitTimezone:localOffset()});
+  try{
+    let r=await fetch('/api/bazi?'+p),j=await r.json();if(!r.ok)throw new Error(j.error||'计算失败');
+    if(seq!==baziSeq)return;
+    let [ps,ds]=j.sets,t=j.term,row=(label,key,extra)=>`<tr><th>${label}${extra?`<small>${extra}</small>`:''}</th><td>${guaText(ps[key],'p')}</td><td>${guaText(ds[key],'d')}</td></tr>`;
+    let pillars=`<table class="bz"><thead><tr><th></th><th>年柱</th><th>月柱</th><th>日柱</th><th>时柱</th></tr></thead><tbody>${j.sets.map(s=>`<tr class="${s.key==='personality'?'p':'d'}"><th>${s.label}</th>${s.pillars.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="note">个性 ${esc(ps.time)} · 设计 ${esc(ds.time)}（出生地时间）</div>`;
+    let natal=`<table class="gt"><thead><tr><th></th><th class="p">个性</th><th class="d">设计</th></tr></thead><tbody>${row('先天卦','xiantian')}${row('后天卦','houtian')}</tbody></table>`;
+    let flow=`<table class="gt"><tbody>${t.age>=1?row('流年卦','year',`${t.year} ${t.yearGanzhi} · ${t.age} 岁`)+row('流月卦','month',`${t.month} ${t.monthGanzhi}`):'<tr><td class="muted">这个月在出生之前，没有流年卦。</td></tr>'}</tbody></table>`;
+    // 日历：节气当天起每 6 天一段，同色；最后多出来的那一天不排卦
+    let blocks=ps.blocks,first=new Date(t.start+'T12:00:00').getDay(),days=[];
+    for(let d=t.start;d<=t.end;d=shiftDay(d,1))days.push(d);
+    let which=d=>blocks.findIndex(b=>b.start<=d&&d<=b.end);
+    let cal=`<div class="bcal">${['日','一','二','三','四','五','六'].map(w=>`<div class="wk">${w}</div>`).join('')}${'<div></div>'.repeat(first)}${days.map(d=>{let k=which(d);return `<div class="day${k<0?' none':''}${d===today?' today':''}"${k<0?'':` style="background:${BLOCK_COLORS[k]}"`}>${+d.slice(8)}</div>`}).join('')}</div>`;
+    let list=blocks.length?`<div class="blist">${blocks.map((b,k)=>`<div class="it${b.start<=today&&today<=b.end?' cur':''}"><i style="background:${BLOCK_COLORS[k]}"></i><span class="dt">${md(b.start)} – ${md(b.end)}</span><span class="g">${guaText(b,'p')}${guaText(ds.blocks[k],'d')}</span></div>`).join('')}</div>`:'';
+    box.innerHTML=`<section class="panel"><h2>八字</h2>${pillars}</section><section class="panel"><h2>命卦</h2>${natal}</section><section class="panel"><div class="tnav"><button class="arrow" id="prevTerm" aria-label="上一个节气月">‹</button><span class="pick">${t.name} ${md(t.start)} – ${md(t.end)}</span><button class="arrow" id="nextTerm" aria-label="下一个节气月">›</button><button class="nowbtn" id="termNow">本月</button></div>${flow}${t.age>=1?cal+list:''}</section>`;
+    $('prevTerm').onclick=()=>{baziDay=shiftDay(t.start,-1);bazi()};$('nextTerm').onclick=()=>{baziDay=shiftDay(t.end,1);bazi()};$('termNow').onclick=()=>{baziDay=today;bazi()};
+  }catch(e){if(seq===baziSeq)box.innerHTML=`<section class="panel">计算失败：${esc(e.message)}</section>`}
+}
+
+// ---------- 底部六个标签：人体图 / 解读 / 月历 / 土星回归 / 八字 / 我的 ----------
 let currentTab='chart';
-function showTab(name){if(!currentProfile())name='me';currentTab=name;['chart','read','month','saturn','me'].forEach(t=>{$('v-'+t).hidden=t!==name;$('tab-'+t).className=t===name?'on':''});window.scrollTo(0,0);if(name==='month'&&!$('cal').innerHTML)month();if(name==='read')nowCard();if(name==='saturn'&&!$('saturn').innerHTML)saturn()}
+function showTab(name){if(!currentProfile())name='me';currentTab=name;['chart','read','month','saturn','bazi','me'].forEach(t=>{$('v-'+t).hidden=t!==name;$('tab-'+t).className=t===name?'on':''});window.scrollTo(0,0);if(name==='month'&&!$('cal').innerHTML)month();if(name==='read')nowCard();if(name==='saturn'&&!$('saturn').innerHTML)saturn();if(name==='bazi'&&!$('bazi').innerHTML)bazi()}
 if($('tabs')){
-  ['chart','read','month','saturn','me'].forEach(t=>$('tab-'+t).onclick=()=>showTab(t));
+  ['chart','read','month','saturn','bazi','me'].forEach(t=>$('tab-'+t).onclick=()=>showTab(t));
   // 顶部只能切换已有档案；选「管理档案…」去「我的」
   $('profileSelect').onchange=e=>{let v=e.target.value;if(v==='__manage'){e.target.value=currentId;showTab('me')}else selectProfile(v)};
   $('addProfile').onclick=()=>openEditor(null);$('pCancel').onclick=()=>{editingId=null;$('profileEditor').hidden=true};
